@@ -2,7 +2,7 @@ const BASE_URL = 'https://movie-list.alphacamp.io'
 const INDEX_URL = BASE_URL + '/api/v1/movies/'
 const POSTER_URL = BASE_URL + '/posters/'
 
-const movies = []
+const movies = JSON.parse(localStorage.getItem('favoriteMovies')) || []
 
 const dataPanel = document.querySelector('#data-panel')
 const searchForm = document.querySelector('#search-form')
@@ -51,25 +51,6 @@ function showMovieModel(id) {
     })
 }
 
-function addToFavorite(id) {
-    function isMovieIdMatched(movie) {
-        return movie.id === id
-    }
-    console.log(id)
-    const list = JSON.parse(localStorage.getItem('favoriteMovies')) || []
-    const movie = movies.find(isMovieIdMatched)
-
-    if (list.some(isMovieIdMatched)) {
-        return alert('此電影已經在收藏清單中!')
-    }
-
-    list.push(movie)
-    localStorage.setItem('favoriteMovies', JSON.stringify(list))
-}
-//匿名函式寫法dataPanel.addEventListener('click', (event) => {
-//    console.error('Error')
-//    })
-//用下方給FUNCTION命名比較好，在DEBUG時會抓得出哪個函式錯誤，反之匿名函式只會說有匿名函式錯誤
 dataPanel.addEventListener('click', function onPanelClicked(event) {
     if (event.target.matches('.btn-show-movie')) {
         console.log(event.target.dataset)
@@ -78,36 +59,4 @@ dataPanel.addEventListener('click', function onPanelClicked(event) {
         addToFavorite(Number(event.target.dataset.id))
     }
 })
-
-searchForm.addEventListener('submit', function onSearchFormSubmitted(event) {
-    event.preventDefault()
-    console.log(event)
-    const keyword = searchInput.value.trim().toLowerCase()
-    let filteredMovies = []
-    //if(!keyword.length) {
-    //    return alert ('Please enter a valid string')
-    //}
-    //filteredMovies = movies.filter((movie) =>      比較高級的寫法
-    //  movie.title.toLowerCase().includes(keyword)
-    //)
-    for (const movie of movies) {
-        if (movie.title.toLowerCase().includes(keyword)) {
-            filteredMovies.push(movie)
-            if (filteredMovies.length === 0) {
-                return alert('Cannot find movies with keyword:' + keyword)
-            }
-        }
-
-    }
-    renderMovieList(filteredMovies)
-})
-
-axios.get(INDEX_URL).then((response) => {
-    //console.log(response.data.results)
-    //for (const movie of response.data.results){ 方法1.可以用for迴圈push到movies
-    //    movies.push(movie)
-    //}
-    movies.push(...response.data.results) //方法2.
-    console.log(movies)
-    renderMovieList(movies)
-})
+renderMovieList(movies)
