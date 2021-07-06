@@ -1,12 +1,15 @@
 const BASE_URL = 'https://movie-list.alphacamp.io'
 const INDEX_URL = BASE_URL + '/api/v1/movies/'
 const POSTER_URL = BASE_URL + '/posters/'
+const MOVIES_PER_PAGE = 12
 
 const movies = []
+let filteredMovies = []
 
 const dataPanel = document.querySelector('#data-panel')
 const searchForm = document.querySelector('#search-form')
 const searchInput = document.querySelector('#search-input')
+const paginator = document.querySelector('#paginator')
 
 function renderMovieList(data) {
     let rawHTML = ''
@@ -34,6 +37,24 @@ function renderMovieList(data) {
     })
 
     dataPanel.innerHTML = rawHTML
+}
+
+function renderPaginator(amount) {
+    const numberOfPages = Math.ceil(amount / MOVIES_PER_PAGE)
+
+    let rawHTML = ''
+
+    for (let page = 1; page <= numberOfPages; page++) {
+        rawHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${page}">${page}</a></li>`
+    }
+
+    paginator.innerHTML = rawHTML
+}
+
+function getMoviesByPage(page) {
+    const data = filteredMovies.length ? filteredMovies : movies
+    const startIndex = (page - 1) * MOVIES_PER_PAGE
+    return data.slice(startIndex, startIndex + MOVIES_PER_PAGE)
 }
 
 function showMovieModel(id) {
@@ -79,11 +100,16 @@ dataPanel.addEventListener('click', function onPanelClicked(event) {
     }
 })
 
+paginator.addEventListener('click', function onPaginatorClicked(event) {
+    if (event.target.tagName !== 'A') return
+    const page = Number(event.target.dataset.page)
+    renderMovieList(getMoviesByPage(page))
+})
+
 searchForm.addEventListener('submit', function onSearchFormSubmitted(event) {
     event.preventDefault()
     console.log(event)
     const keyword = searchInput.value.trim().toLowerCase()
-    let filteredMovies = []
     //if(!keyword.length) {
     //    return alert ('Please enter a valid string')
     //}
@@ -97,9 +123,9 @@ searchForm.addEventListener('submit', function onSearchFormSubmitted(event) {
                 return alert('Cannot find movies with keyword:' + keyword)
             }
         }
-
     }
-    renderMovieList(filteredMovies)
+    renderPaginator(filteredMovies.length)
+    renderMovieList(getMoviesByPage(1))
 })
 
 axios.get(INDEX_URL).then((response) => {
@@ -109,5 +135,6 @@ axios.get(INDEX_URL).then((response) => {
     //}
     movies.push(...response.data.results) //方法2.
     console.log(movies)
-    renderMovieList(movies)
+    renderPaginator(movies.length)
+    renderMovieList(getMoviesByPage(1))
 })
